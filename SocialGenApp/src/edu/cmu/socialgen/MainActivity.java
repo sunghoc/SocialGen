@@ -9,7 +9,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-    	Log.i("SenderTest", "start!");
+
         try {
         	ControlComManager CM = new ControlComManager();
         	new Thread(CM).start();
