@@ -1,46 +1,16 @@
 package edu.cmu.socialgen;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 
-class WiFiNetworkService extends Service{
-	
-	public WiFiNetworkService() {
-		
-	}
-	
-	public IBinder onBind(Intent intent) {
-		
-		return null;
-	}
-	
-	public int getLocalIpAddress() {
-		int ipAddress;
-		try {
-			WifiManager wifiMan = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-			WifiInfo wifiInf = wifiMan.getConnectionInfo();
-			ipAddress = wifiInf.getIpAddress();
-		} catch (Exception e) {
-			ipAddress = 0;
-			Log.i("Exception", "Exception in GetLocalIpAddress"+e);
-		}
-		return ipAddress;
-	}
-}
 
 
 public class ControlComManager implements Runnable{
@@ -52,16 +22,20 @@ public class ControlComManager implements Runnable{
 
 	public InetAddress WCARD_ADDR;
 	public InetAddress BCAST_ADDR;
+	public InetAddress localInetIpAddr;
 	private DatagramSocket controlSocket;
 	
-	public ControlComManager() throws SocketException, UnknownHostException, IOException {
-		WiFiNetworkService wifiNS = new WiFiNetworkService();
-		Log.i("SendTest", "IP:"+wifiNS.getLocalIpAddress());
-
+	public ControlComManager(WifiInfo wifiInfo) {
+		int intIpAddr = wifiInfo.getIpAddress();
+		byte[] byteIpAddr = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(intIpAddr).array();
+	
 		try {
+			localInetIpAddr = InetAddress.getByAddress(byteIpAddr);
+			Log.i("SendTest", "My IP:"+localInetIpAddr.toString());
+			
 			WCARD_ADDR = InetAddress.getByName("0.0.0.0");
 			BCAST_ADDR = InetAddress.getByName("255.255.255.255");
-			this.controlSocket = new DatagramSocket(CONTROL_PORT, WCARD_ADDR);
+			this.controlSocket = new DatagramSocket(CONTROL_PORT, localInetIpAddr);
 			this.controlSocket.setBroadcast(true);
 			this.controlSocket.setSoTimeout(CTLSKT_TIMEOUT);
 		} catch (Exception e) {
@@ -82,6 +56,10 @@ public class ControlComManager implements Runnable{
 			DatagramPacket sndPkt = new DatagramPacket(msg, msgLen, BCAST_ADDR, CONTROL_PORT);
 	    	Log.i("BeaconingTest", "start!");
 	    	while(true) {
+	    		
+	    		this.controlSocket.send(sndPkt);
+	    		Log.i("SndTest", "Msg sent!");
+	    		
 	    		try {
 	    			this.controlSocket.receive(rcvPkt);
 	    		} catch (SocketTimeoutException e) {
@@ -94,9 +72,6 @@ public class ControlComManager implements Runnable{
 	    		Log.i("RcvTest", "Msg rcvd from <"+senderAddr+":"+senderPort+">, contents("+rcvStr+")");
 
 				SystemClock.sleep(1000);
-	    		
-	    		this.controlSocket.send(sndPkt);
-	    		Log.i("SndTest", "Msg sent!");
 	    	}
 
 		} catch (Exception e) {
