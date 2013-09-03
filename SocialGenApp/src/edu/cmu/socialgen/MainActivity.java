@@ -1,7 +1,11 @@
 package edu.cmu.socialgen;
 
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.widget.TabHost;
 import edu.cmu.socialgen.tab.ChatsFragment;
 import edu.cmu.socialgen.tab.DummyTabContent;
@@ -16,6 +20,14 @@ public class MainActivity extends FragmentActivity {
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+
+        try {
+        	ControlComManager CM = new ControlComManager(this.getWiFiInfo());
+        	new Thread(CM).start();
+        } catch (Exception e) {
+        	/* if getWiFiInfo() fails, stop the application! */
+        }
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
  
@@ -103,4 +115,14 @@ public class MainActivity extends FragmentActivity {
     }
     
     
+	public WifiInfo getWiFiInfo() {
+		WifiInfo wifiInfo = null;
+		try {
+			WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+			wifiInfo = wifiMgr.getConnectionInfo();
+		} catch (Exception e) {
+			Log.i("Exception", "Exception in GetWiFiInfo"+e);
+		}
+		return wifiInfo;
+	}
 }
