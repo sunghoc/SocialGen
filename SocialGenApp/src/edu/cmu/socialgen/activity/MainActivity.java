@@ -90,28 +90,28 @@ public class MainActivity extends FragmentActivity {
  
         /** Setting tabchangelistener for the tab */
         tHost.setOnTabChangedListener(tabChangeListener);
- 
-        /** Defining tab builder for Folks tab */
-        TabHost.TabSpec tSpecFolks = tHost.newTabSpec("users");
-        tSpecFolks.setIndicator("Users",getResources().getDrawable(R.drawable.users));
-        tSpecFolks.setContent(new DummyTabContent(getBaseContext()));
-        tHost.addTab(tSpecFolks);
- 
+
         /** Defining tab builder for Chats tab */
         TabHost.TabSpec tSpecChats = tHost.newTabSpec("chats");
-        tSpecChats.setIndicator("Chats",getResources().getDrawable(R.drawable.chats));
+        tSpecChats.setIndicator("Now",getResources().getDrawable(R.drawable.chats));
         tSpecChats.setContent(new DummyTabContent(getBaseContext()));
         tHost.addTab(tSpecChats);
- 
+
         /** Defining tab builder for History tab */
         TabHost.TabSpec tSpecHistory = tHost.newTabSpec("history");
-        tSpecHistory.setIndicator("History",getResources().getDrawable(R.drawable.history));
+        tSpecHistory.setIndicator("Before",getResources().getDrawable(R.drawable.history));
         tSpecHistory.setContent(new DummyTabContent(getBaseContext()));
         tHost.addTab(tSpecHistory);
         
+        /** Defining tab builder for Folks tab */
+        TabHost.TabSpec tSpecFolks = tHost.newTabSpec("users");
+        tSpecFolks.setIndicator("You",getResources().getDrawable(R.drawable.users));
+        tSpecFolks.setContent(new DummyTabContent(getBaseContext()));
+        tHost.addTab(tSpecFolks);
+       
         /** Defining tab builder for Profile tab */
         TabHost.TabSpec tSpecProfile = tHost.newTabSpec("profile");
-        tSpecProfile.setIndicator("Profile",getResources().getDrawable(R.drawable.profile));
+        tSpecProfile.setIndicator("Me",getResources().getDrawable(R.drawable.profile));
         tSpecProfile.setContent(new DummyTabContent(getBaseContext()));
         tHost.addTab(tSpecProfile);
     }
