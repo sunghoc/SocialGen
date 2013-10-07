@@ -115,7 +115,7 @@ public class MainActivity extends FragmentActivity {
         tSpecProfile.setContent(new DummyTabContent(getBaseContext()));
         tHost.addTab(tSpecProfile);
     }
-    
+	
 	public WifiManager getWiFiMgr() {
 		WifiManager wifiMgr = null;
 		
