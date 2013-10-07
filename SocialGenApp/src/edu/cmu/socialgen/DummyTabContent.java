@@ -1,4 +1,4 @@
-package edu.cmu.socialgen.tab;
+package edu.cmu.socialgen;
 
 import android.content.Context;
 import android.view.View;

@@ -5,7 +5,12 @@
     <string name="action_settings">Settings</string>
     <string name="chats_icon_text">Chats</string>
     <string name="folks_icon_text">Folks</string>
-	<string name="history_icon_text">History</string>
-	<string name="profile_icon_text">Profile</string>
-    
+    <string name="history_icon_text">History</string>
+    <string name="profile_icon_text">Profile</string>
+    <string name="description">Description</string>
+    <string name="title_activity_chat">ChatActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_user">UserActivity</string>
+    <string name="title_activity_history">HistoryActivity</string>
+
 </resources>

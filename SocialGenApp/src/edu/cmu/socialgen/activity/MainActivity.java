@@ -1,4 +1,4 @@
-package edu.cmu.socialgen;
+package edu.cmu.socialgen.activity;
 
 import android.content.Context;
 import android.net.wifi.WifiInfo;
@@ -7,11 +7,12 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.TabHost;
+import edu.cmu.socialgen.DummyTabContent;
+import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.tab.ChatsFragment;
-import edu.cmu.socialgen.tab.DummyTabContent;
-import edu.cmu.socialgen.tab.FolksFragment;
 import edu.cmu.socialgen.tab.HistoryFragment;
 import edu.cmu.socialgen.tab.ProfileFragment;
+import edu.cmu.socialgen.tab.UsersFragment;
 
 
 public class MainActivity extends FragmentActivity {
@@ -21,12 +22,14 @@ public class MainActivity extends FragmentActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
+		/*
         try {
         	ControlComManager CM = new ControlComManager(this.getWiFiInfo());
         	new Thread(CM).start();
         } catch (Exception e) {
-        	/* if getWiFiInfo() fails, stop the application! */
+        	// if getWiFiInfo() fails, stop the application!
         }
+		*/
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -39,14 +42,14 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onTabChanged(String tabId) {
                 android.support.v4.app.FragmentManager fm =   getSupportFragmentManager();
-                FolksFragment folksFragment = (FolksFragment) fm.findFragmentByTag("folks");
+                UsersFragment usersFragment = (UsersFragment) fm.findFragmentByTag("users");
                 ChatsFragment chatsFragment = (ChatsFragment) fm.findFragmentByTag("chats");
                 HistoryFragment historyFragment = (HistoryFragment) fm.findFragmentByTag("history");
                 ProfileFragment profileFragment = (ProfileFragment) fm.findFragmentByTag("profile");
                 android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();
  
-                if(folksFragment!=null)
-                    ft.detach(folksFragment);
+                if(usersFragment!=null)
+                    ft.detach(usersFragment);
  
                 if(chatsFragment!=null)
                     ft.detach(chatsFragment);
@@ -57,11 +60,11 @@ public class MainActivity extends FragmentActivity {
                 if(profileFragment!=null)
                     ft.detach(profileFragment);
                 
-                if(tabId.equalsIgnoreCase("folks")){
-                    if(folksFragment==null){
-                        ft.add(R.id.realtabcontent, new FolksFragment(), "folks");
+                if(tabId.equalsIgnoreCase("users")){
+                    if(usersFragment==null){
+                        ft.add(R.id.realtabcontent, new UsersFragment(), "users");
                     }else{
-                        ft.attach(folksFragment);
+                        ft.attach(usersFragment);
                     }
                 }else if(tabId.equalsIgnoreCase("chats")){
                     if(chatsFragment==null){
@@ -90,8 +93,8 @@ public class MainActivity extends FragmentActivity {
         tHost.setOnTabChangedListener(tabChangeListener);
  
         /** Defining tab builder for Folks tab */
-        TabHost.TabSpec tSpecFolks = tHost.newTabSpec("folks");
-        tSpecFolks.setIndicator("Folks",getResources().getDrawable(R.drawable.folks));
+        TabHost.TabSpec tSpecFolks = tHost.newTabSpec("users");
+        tSpecFolks.setIndicator("Users",getResources().getDrawable(R.drawable.users));
         tSpecFolks.setContent(new DummyTabContent(getBaseContext()));
         tHost.addTab(tSpecFolks);
  

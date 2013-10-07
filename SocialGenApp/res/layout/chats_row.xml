@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/list_selector"
+    android:padding="5dip" >
+    
+    <!-- Chat list row left side thumbnail image -->
+    <LinearLayout 
+        android:id="@+id/chat_thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="3dip"
+        android:layout_alignParentLeft="true"
+        android:background="@drawable/image_bg"
+        android:layout_marginRight="5dip">
+        
+			<ImageView 
+			    android:id="@+id/chat_image"
+			    android:layout_width="50dip"
+			    android:layout_height="50dip"
+			    android:src="@drawable/android"
+			    android:contentDescription="@string/description" />        
+			    
+    </LinearLayout>
+
+    <!-- Chat title -->
+    <TextView 
+        android:id="@+id/chat_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/chat_thumbnail"
+        android:layout_toRightOf="@+id/chat_thumbnail"
+        android:textColor="#040404"
+        android:typeface="sans"
+        android:textSize="15sp"
+        android:textStyle="bold"/>
+    
+    <!-- Right side date -->
+    <TextView 
+        android:id="@+id/chat_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/chat_title"
+        android:gravity="right"
+        android:layout_marginRight="5dip"
+        android:textColor="#10bcc9"
+        android:textSize="12sp"
+        android:textStyle="bold"/>
+    
+    <!-- Rightend arrow -->
+    <!-- <ImageView 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/arrow"
+        android:contentDescription="Rightend arrow image"/> -->
+    
+</RelativeLayout>
