@@ -10,7 +10,7 @@ import java.util.TimerTask;
 
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
-import android.os.SystemClock;
+//import android.os.SystemClock;
 import android.util.Log;
 
 
@@ -39,7 +39,8 @@ public class ControlComManager implements Runnable{
 	public ControlComManager(WifiManager wifiMgr) {
 		this.wifiMgr = wifiMgr;
 		int intIpAddr = wifiMgr.getConnectionInfo().getIpAddress();
-		byte[] byteIpAddr = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(intIpAddr).array();
+		byte[] byteIpAddr = 
+				ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(intIpAddr).array();
 		String localMacAddr = wifiMgr.getConnectionInfo().getMacAddress();
 		
 		/* socket setting */
@@ -49,7 +50,6 @@ public class ControlComManager implements Runnable{
 			
 			WCARD_ADDR = InetAddress.getByName("0.0.0.0");
 			BCAST_ADDR = InetAddress.getByName("255.255.255.255");
-			//this.controlSocket = new DatagramSocket(CONTROL_PORT, localInetIpAddr);
 			this.controlSocket = new DatagramSocket(CONTROL_PORT);
 			this.controlSocket.setBroadcast(true);
 			this.controlSocket.setSoTimeout(CTLSKT_TIMEOUT);
@@ -78,7 +78,8 @@ public class ControlComManager implements Runnable{
 	    		Log.i("BeaconModule", "Msg sent!");
 			}
 		}
-		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, localMacAddr), BEACON_PERIOD, BEACON_PERIOD);
+		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, localMacAddr),
+							  BEACON_PERIOD, BEACON_PERIOD);
 	}
 	
 	public DatagramPacket createBeacon(String userId, String realId) {
@@ -86,22 +87,31 @@ public class ControlComManager implements Runnable{
 		 * Later, we can think of other unique device id ad a real ID.
 		 */
 		StringBuffer msgStrBuf = new StringBuffer();
-		msgStrBuf.append(CONTROL_PKT_TYPE_BEACON);
+		msgStrBuf.append(String.format("%c", CONTROL_PKT_TYPE_BEACON));
 		/* add user id TLV */
-		msgStrBuf.append(BEACON_IE_TYPE_USERID);
 		byte userid_len = (byte)Math.min(userId.length(), BEACON_IE_USERID_MAXLEN);
-		msgStrBuf.append(userid_len);
+		msgStrBuf.append(String.format("%c%c", BEACON_IE_TYPE_USERID, userid_len));
 		msgStrBuf.append(userId.substring(0, userid_len));
 		/* add real id TLV */
-		msgStrBuf.append(BEACON_IE_TYPE_REALID);
 		byte realid_len = (byte)Math.min(realId.length(), BEACON_IE_REALID_MAXLEN);
-		msgStrBuf.append(realid_len);
+		msgStrBuf.append(String.format("%c%c", BEACON_IE_TYPE_REALID, realid_len));
 		msgStrBuf.append(realId.substring(0, realid_len));
 		
 		/* packet generation */
-		DatagramPacket beacon = new DatagramPacket(msgStrBuf.toString().getBytes(), msgStrBuf.length(), BCAST_ADDR, CONTROL_PORT);
-		//DatagramPacket beacon = new DatagramPacket(CONTROL_PKT_TYPE_BEACON+"ElecPig".getBytes(), msgStrBuf.length(), BCAST_ADDR, CONTROL_PORT);
+		DatagramPacket beacon =
+				new DatagramPacket(msgStrBuf.toString().getBytes(),
+								   msgStrBuf.length(),
+								   BCAST_ADDR, CONTROL_PORT);
 		return beacon;
+	}
+	
+	public void parseBeacon(byte[] rcvBuf, DatagramPacket rcvPkt,
+							InetAddress senderAddr, int senderPort) {
+		String rcvStr = new String(rcvPkt.getData(), 0, rcvPkt.getLength());
+		Log.i("ControlComReceiver", "Beacon rcvd from <"+
+			  senderAddr+":"+senderPort+">, contents("+rcvStr+")");
+		
+		return;
 	}
 	
 	public void run() {
@@ -111,7 +121,8 @@ public class ControlComManager implements Runnable{
 	    	DatagramPacket rcvPkt = new DatagramPacket(rcvBuf, rcvBuf.length);
 	    	
 	    	/* WiFi multicast enable */
-	    	MulticastLock wifi_mc_lock = this.wifiMgr.createMulticastLock("ccm_wifi_mc_lock");
+	    	MulticastLock wifi_mc_lock =
+	    			this.wifiMgr.createMulticastLock("ccm_wifi_mc_lock");
 	    	wifi_mc_lock.acquire();
 	    	
 	    	while(true) {
@@ -122,16 +133,25 @@ public class ControlComManager implements Runnable{
 	    			Log.i("ControlComReceiver", "Exception"+e);
 	    			continue;
 	    		}
-	    		/* read control packet type */
-	    		byte ctl_type = rcvBuf[0];
-	    		String rcvStr = new String(rcvPkt.getData(), 0, rcvPkt.getLength());
-	    		InetAddress senderAddr = rcvPkt.getAddress();
+	    		
+    			InetAddress senderAddr = rcvPkt.getAddress();
+	    		int senderPort = rcvPkt.getPort();
 	    		if (senderAddr.equals(this.localInetIpAddr)) {
 	    			/* skip the packets sent by itself */
 	    			continue;
 	    		}
-	    		int senderPort = rcvPkt.getPort();
-	    		Log.i("ControlComReceiver", "Msg("+ctl_type+") rcvd from <"+senderAddr+":"+senderPort+">, contents("+rcvStr+")");
+	    		
+	    		/* read control packet type */
+	    		byte ctl_type = rcvBuf[0];
+	    		switch (ctl_type) {
+	    			case CONTROL_PKT_TYPE_BEACON:
+	    				parseBeacon(rcvBuf, rcvPkt, senderAddr, senderPort);
+	    				break;
+	    				
+	    			default:
+	    				Log.i("ControlComReceiver",
+	    					  String.format("unexpected packet type(%c)", ctl_type));
+	    		}
 
 				//SystemClock.sleep(1000);
 	    	}
@@ -142,7 +162,8 @@ public class ControlComManager implements Runnable{
 		} catch (Exception e) {
 			Log.i("ControlComReceiver", "Exception"+e);
 		}
+		
+		return;
 	}
-	
 
 }
