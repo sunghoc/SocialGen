@@ -1,12 +1,12 @@
 package edu.cmu.socialgen.activity;
 
 import android.content.Context;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.TabHost;
+import edu.cmu.socialgen.ControlComManager;
 import edu.cmu.socialgen.DummyTabContent;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.tab.ChatsFragment;
@@ -22,14 +22,13 @@ public class MainActivity extends FragmentActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
-		/*
         try {
-        	ControlComManager CM = new ControlComManager(this.getWiFiInfo());
+        	ControlComManager CM = new ControlComManager(this.getWiFiMgr());
         	new Thread(CM).start();
         } catch (Exception e) {
-        	// if getWiFiInfo() fails, stop the application!
+        	/* if getWiFiInfo() fails, stop the application! */
+        	Log.i("Exception", "Exception in greating thread"+e);
         }
-		*/
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -117,15 +116,15 @@ public class MainActivity extends FragmentActivity {
         tHost.addTab(tSpecProfile);
     }
     
-    
-	public WifiInfo getWiFiInfo() {
-		WifiInfo wifiInfo = null;
+	public WifiManager getWiFiMgr() {
+		WifiManager wifiMgr = null;
+		
 		try {
-			WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-			wifiInfo = wifiMgr.getConnectionInfo();
+			wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 		} catch (Exception e) {
-			Log.i("Exception", "Exception in GetWiFiInfo"+e);
+			Log.i("Exception", "Exception in getWiFiMgr"+e);
 		}
-		return wifiInfo;
+		
+		return wifiMgr;
 	}
 }
