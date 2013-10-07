@@ -24,6 +24,12 @@ public class ControlComManager implements Runnable{
 	public static final String BEACON_TMR_TASK_NAME = "BEACON";
 	public static final int BEACON_PERIOD = 1000; /* millisecond */
 	
+	public static final byte CONTROL_PKT_TYPE_BEACON = 0x01;
+	public static final byte BEACON_IE_TYPE_USERID = 0x11;
+	public static final byte BEACON_IE_USERID_MAXLEN = 20;
+	public static final byte BEACON_IE_TYPE_REALID = 0x12;
+	public static final byte BEACON_IE_REALID_MAXLEN = 6;
+
 	public InetAddress WCARD_ADDR;
 	public InetAddress BCAST_ADDR;
 	public InetAddress localInetIpAddr;
@@ -34,6 +40,7 @@ public class ControlComManager implements Runnable{
 		this.wifiMgr = wifiMgr;
 		int intIpAddr = wifiMgr.getConnectionInfo().getIpAddress();
 		byte[] byteIpAddr = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(intIpAddr).array();
+		String localMacAddr = wifiMgr.getConnectionInfo().getMacAddress();
 		
 		/* socket setting */
 		try {
@@ -54,17 +61,15 @@ public class ControlComManager implements Runnable{
 		Timer beacon_timer = new Timer(BEACON_TMR_TASK_NAME);
 		class BeaconTimerTask extends TimerTask{
 			public DatagramSocket inheritedCS;
+			public String localMacAddr;
 			
-			public BeaconTimerTask(DatagramSocket cs){
+			public BeaconTimerTask(DatagramSocket cs, String mac_addr){
 				inheritedCS = cs;
+				localMacAddr = mac_addr;
 			}
 			
 			public void run(){
-		    	/* beaconing test now */
-				String msgStr = "I'm sending";
-				int msgLen = msgStr.length();
-				byte[] msg = msgStr.getBytes();
-				DatagramPacket sndPkt = new DatagramPacket(msg, msgLen, BCAST_ADDR, CONTROL_PORT);
+				DatagramPacket sndPkt = createBeacon("ElecPig", this.localMacAddr);
 				try {
 					this.inheritedCS.send(sndPkt);
 				} catch (Exception e) {
@@ -73,10 +78,32 @@ public class ControlComManager implements Runnable{
 	    		Log.i("BeaconModule", "Msg sent!");
 			}
 		}
-		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket), BEACON_PERIOD, BEACON_PERIOD);
+		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, localMacAddr), BEACON_PERIOD, BEACON_PERIOD);
 	}
 	
-	//public DatagramPacket 
+	public DatagramPacket createBeacon(String userId, String realId) {
+		/* Currently MAC address will be used for the realID.
+		 * Later, we can think of other unique device id ad a real ID.
+		 */
+		StringBuffer msgStrBuf = new StringBuffer();
+		msgStrBuf.append(CONTROL_PKT_TYPE_BEACON);
+		/* add user id TLV */
+		msgStrBuf.append(BEACON_IE_TYPE_USERID);
+		byte userid_len = (byte)Math.min(userId.length(), BEACON_IE_USERID_MAXLEN);
+		msgStrBuf.append(userid_len);
+		msgStrBuf.append(userId.substring(0, userid_len));
+		/* add real id TLV */
+		msgStrBuf.append(BEACON_IE_TYPE_REALID);
+		byte realid_len = (byte)Math.min(realId.length(), BEACON_IE_REALID_MAXLEN);
+		msgStrBuf.append(realid_len);
+		msgStrBuf.append(realId.substring(0, realid_len));
+		
+		/* packet generation */
+		DatagramPacket beacon = new DatagramPacket(msgStrBuf.toString().getBytes(), msgStrBuf.length(), BCAST_ADDR, CONTROL_PORT);
+		//DatagramPacket beacon = new DatagramPacket(CONTROL_PKT_TYPE_BEACON+"ElecPig".getBytes(), msgStrBuf.length(), BCAST_ADDR, CONTROL_PORT);
+		return beacon;
+	}
+	
 	public void run() {
 		try {
 	    	
@@ -95,6 +122,8 @@ public class ControlComManager implements Runnable{
 	    			Log.i("ControlComReceiver", "Exception"+e);
 	    			continue;
 	    		}
+	    		/* read control packet type */
+	    		byte ctl_type = rcvBuf[0];
 	    		String rcvStr = new String(rcvPkt.getData(), 0, rcvPkt.getLength());
 	    		InetAddress senderAddr = rcvPkt.getAddress();
 	    		if (senderAddr.equals(this.localInetIpAddr)) {
@@ -102,9 +131,9 @@ public class ControlComManager implements Runnable{
 	    			continue;
 	    		}
 	    		int senderPort = rcvPkt.getPort();
-	    		Log.i("ControlComReceiver", "Msg rcvd from <"+senderAddr+":"+senderPort+">, contents("+rcvStr+")");
+	    		Log.i("ControlComReceiver", "Msg("+ctl_type+") rcvd from <"+senderAddr+":"+senderPort+">, contents("+rcvStr+")");
 
-				SystemClock.sleep(1000);
+				//SystemClock.sleep(1000);
 	    	}
 	    	
 	    	/* WiFi multicast disable */
