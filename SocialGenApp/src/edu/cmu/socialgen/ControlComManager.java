@@ -3,6 +3,7 @@ package edu.cmu.socialgen;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.StringTokenizer;
@@ -23,7 +24,7 @@ public class ControlComManager implements Runnable{
 	public static final int CTLSKT_TIMEOUT = 1000; /* millisecond */
 	public static final int BUF_SIZE = 1024;
 	public static final String BEACON_TMR_TASK_NAME = "BEACON";
-	public static final int BEACON_PERIOD = 1000; /* millisecond */
+	public static final int BEACON_PERIOD = 3000; /* millisecond */
 	
 	public static final byte CONTROL_PKT_TYPE_BEACON = 0x01;
 	public static final byte BEACON_IE_TYPE_USERID = 0x11;
@@ -33,6 +34,7 @@ public class ControlComManager implements Runnable{
 
 	public InetAddress WCARD_ADDR;
 	public InetAddress BCAST_ADDR;
+	
 	public InetAddress localInetIpAddr;
 	private DatagramSocket controlSocket;
 	private WifiManager wifiMgr;
@@ -70,7 +72,6 @@ public class ControlComManager implements Runnable{
 				StringTokenizer macStrTok = new StringTokenizer(macStr, ":");
 				for (int i = 0; i < 6; i++) {
 					this.localMacAddr[i] = Integer.valueOf(macStrTok.nextToken(), 16).byteValue();
-					Log.i("mac", "i="+i+", "+this.localMacAddr[i]);
 				}
 			}
 			
@@ -81,7 +82,7 @@ public class ControlComManager implements Runnable{
 				} catch (Exception e) {
 					Log.i("BeaconModule", "Exception"+e);
 				}
-	    		Log.i("BeaconModule", "Msg sent!");
+	    		Log.d("BeaconModule", "Beacon sent!");
 			}
 		}
 		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, MacStr),
@@ -168,6 +169,8 @@ public class ControlComManager implements Runnable{
     		
     		try {
     			this.controlSocket.receive(rcvPkt);
+    		} catch(SocketTimeoutException toe) {
+    			continue;
     		} catch (Exception e) {
     			Log.i("ControlComReceiver", "Recv error - "+e);
     			continue;
@@ -175,8 +178,8 @@ public class ControlComManager implements Runnable{
     		
 			InetAddress senderAddr = rcvPkt.getAddress();
     		int senderPort = rcvPkt.getPort();
-    		if (senderAddr.equals(this.localInetIpAddr)) {
-    			/* skip the packets sent by itself */
+    		if (senderAddr.equals(this.localInetIpAddr) || (senderPort != CONTROL_PORT)) {
+    			/* skip if the packet is sent by itself or comes from other port */
     			continue;
     		}
     		

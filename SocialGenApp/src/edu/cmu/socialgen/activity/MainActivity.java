@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.TabHost;
 import edu.cmu.socialgen.ControlComManager;
+import edu.cmu.socialgen.DataComManager;
 import edu.cmu.socialgen.DummyTabContent;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.tab.ChatsFragment;
@@ -25,9 +26,11 @@ public class MainActivity extends FragmentActivity {
         try {
         	ControlComManager CM = new ControlComManager(this.getWiFiMgr());
         	new Thread(CM).start();
+        	DataComManager DM = new DataComManager(this.getWiFiMgr());
+        	new Thread(DM).start();
         } catch (Exception e) {
         	/* if getWiFiInfo() fails, stop the application! */
-        	Log.i("Exception", "Exception in greating thread"+e);
+        	Log.i("Exception", "Exception in creating thread - "+e);
         }
         
         super.onCreate(savedInstanceState);
