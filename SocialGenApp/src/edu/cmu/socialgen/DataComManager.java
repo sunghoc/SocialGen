@@ -9,9 +9,8 @@ import java.nio.ByteOrder;
 
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 
 
@@ -22,6 +21,8 @@ public class DataComManager implements Runnable{
 	public static final int DATA_PORT = 15379;
 	public static final int DATSKT_TIMEOUT = 1000; /* millisecond */
 	public static final int BUF_SIZE = 1024;
+	
+	public static final byte DATA_PKT_TYPE_SELF = 0x60;	/* data from UI */
 	
 	public static final byte DATA_PKT_TYPE_TEXT = 0x71;
 	public static final byte DATA_PKT_TYPE_VOICE = 0x72;
@@ -59,11 +60,27 @@ public class DataComManager implements Runnable{
 
 	}
 
+	public void enterText(UserMsg uMsg) {
+		StringBuffer msgStrBuf = new StringBuffer();
+		msgStrBuf.append(String.format("%c", DATA_PKT_TYPE_SELF));
+		msgStrBuf.append(String.format("%s",  uMsg.msgContent));
+		byte[] msgByteArray = msgStrBuf.toString().getBytes();
+		int msgLen = msgStrBuf.length();
+		DatagramPacket pkt = new DatagramPacket(msgByteArray, msgLen, this.localInetIpAddr, DATA_PORT);
+		try {
+			this.dataSocket.send(pkt);
+		} catch (Exception e) {
+			Log.i("enterText", "Exception - "+e);
+		}
+		Log.i("enterText", "text msg sent to "+this.localInetIpAddr.toString()+" ("+uMsg.msgContent+")");
+	}
+	
 	public void run() {
 		byte[] rcvBuf = new byte[BUF_SIZE];
     	DatagramPacket rcvPkt = new DatagramPacket(rcvBuf, rcvBuf.length);
     	
     	/* enable the message looper */
+    	/*
     	Looper.prepare();
     	userMsgHandler = new Handler() {
     		public void handleMessage(Message msg) {
@@ -72,6 +89,8 @@ public class DataComManager implements Runnable{
     		}
     	};
     	Looper.loop();
+    	*/
+    	
     	/* WiFi multicast enable */
     	MulticastLock wifi_mc_lock =
     			this.wifiMgr.createMulticastLock("dcm_wifi_mc_lock");
@@ -90,29 +109,40 @@ public class DataComManager implements Runnable{
 
 			InetAddress senderAddr = rcvPkt.getAddress();
     		int senderPort = rcvPkt.getPort();
-    		if (senderAddr.equals(this.localInetIpAddr) || (senderPort != DATA_PORT)) {
-    			/* skip if the packet is sent by itself or comes from other port */
+    		if (senderPort != DATA_PORT) {
+    			/* skip if the packet is sent from other port */
     			continue;
     		}
     		
     		/* read data packet type */
     		byte dat_type = rcvBuf[0];
-    		switch (dat_type) {
-    			case DATA_PKT_TYPE_TEXT:
-    				//Log.i("DataComReceiver", "Text message rcvd from <"+
-    				//		  senderAddr+">, UserID("+bp.userId+"), MacAddr("+bp.MacAddress+")");
-    				break;
-    				
-    			case DATA_PKT_TYPE_VOICE:
-    			case DATA_PKT_TYPE_VIDEO:
-    			case DATA_PKT_TYPE_IMAGE:
-    				/* FALL THROUGH */
-    			default:
-    				Log.i("DataComReceiver",
-    					  String.format("unexpected packet type(%c)", dat_type));
-    				break;
+    		if (senderAddr.equals(this.localInetIpAddr)) {
+    			if (dat_type == DATA_PKT_TYPE_SELF) {
+    				Log.i("DataComReceiver", "CAPTURE!!");
+    			}
+    			else {
+    				/* skip if the packet comes from itself and not from UI */
+    				continue;
+    			}
     		}
-
+    		else {
+	    		switch (dat_type) {
+	    			case DATA_PKT_TYPE_TEXT:
+	    				//Log.i("DataComReceiver", "Text message rcvd from <"+
+	    				//		  senderAddr+">, UserID("+bp.userId+"), MacAddr("+bp.MacAddress+")");
+	    				break;
+	    				
+	    			case DATA_PKT_TYPE_VOICE:
+	    			case DATA_PKT_TYPE_VIDEO:
+	    			case DATA_PKT_TYPE_IMAGE:
+	    				/* FALL THROUGH */
+	    			default:
+	    				Log.i("DataComReceiver",
+	    					  String.format("unexpected packet type(%c)", dat_type));
+	    				break;
+	    		}
+    		}
+    		
 			//SystemClock.sleep(1000);
     	}
     	
