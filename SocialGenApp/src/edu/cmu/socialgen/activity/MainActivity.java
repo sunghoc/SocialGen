@@ -19,14 +19,16 @@ import edu.cmu.socialgen.tab.UsersFragment;
 public class MainActivity extends FragmentActivity {
 
 	TabHost tHost;
+	public static ControlComManager CM;
+	public static DataComManager DM;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
         try {
-        	ControlComManager CM = new ControlComManager(this.getWiFiMgr());
+        	CM = new ControlComManager(this.getWiFiMgr());
         	new Thread(CM).start();
-        	DataComManager DM = new DataComManager(this.getWiFiMgr());
+        	DM = new DataComManager(this.getWiFiMgr());
         	new Thread(DM).start();
         } catch (Exception e) {
         	/* if getWiFiInfo() fails, stop the application! */

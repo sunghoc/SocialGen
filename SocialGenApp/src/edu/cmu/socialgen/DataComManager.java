@@ -9,7 +9,11 @@ import java.nio.ByteOrder;
 
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
+
 
 
 public class DataComManager implements Runnable{
@@ -30,6 +34,7 @@ public class DataComManager implements Runnable{
 	public InetAddress localInetIpAddr;
 	private DatagramSocket dataSocket;
 	private WifiManager wifiMgr;
+	public Handler userMsgHandler;
 	
 	
 	public DataComManager(WifiManager wifiMgr) {
@@ -58,6 +63,15 @@ public class DataComManager implements Runnable{
 		byte[] rcvBuf = new byte[BUF_SIZE];
     	DatagramPacket rcvPkt = new DatagramPacket(rcvBuf, rcvBuf.length);
     	
+    	/* enable the message looper */
+    	Looper.prepare();
+    	userMsgHandler = new Handler() {
+    		public void handleMessage(Message msg) {
+    			UserMsg uMsg = (UserMsg)msg.obj;
+    			Log.i("DataComThread", "text msg received from "+uMsg.userId+" ("+uMsg.msgContent+")");
+    		}
+    	};
+    	Looper.loop();
     	/* WiFi multicast enable */
     	MulticastLock wifi_mc_lock =
     			this.wifiMgr.createMulticastLock("dcm_wifi_mc_lock");
@@ -73,7 +87,7 @@ public class DataComManager implements Runnable{
     			Log.i("DataComReceiver", "Recv error - "+e);
     			continue;
     		}
-    		
+
 			InetAddress senderAddr = rcvPkt.getAddress();
     		int senderPort = rcvPkt.getPort();
     		if (senderAddr.equals(this.localInetIpAddr) || (senderPort != DATA_PORT)) {

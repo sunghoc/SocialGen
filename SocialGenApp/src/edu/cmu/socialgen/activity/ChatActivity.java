@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
 import edu.cmu.socialgen.R;
+import edu.cmu.socialgen.UserMsg;
 import edu.cmu.socialgen.adapter.ChatAdapter;
 import edu.cmu.socialgen.model.Chat;
 import edu.cmu.socialgen.model.Message;
@@ -50,6 +51,13 @@ public class ChatActivity extends ListActivity {
 		String newMessage = etMessage.getText().toString().trim();
 		if (newMessage.length() > 0) {
 			etMessage.setText("");
+			/* build message */
+			UserMsg msg = new UserMsg(null, "ElecPig", newMessage);
+			android.os.Message osMsg = android.os.Message.obtain();
+			osMsg.obj = msg;
+			/* send message */
+			MainActivity.DM.userMsgHandler.sendMessage(osMsg);
+			/* show in the text box */
 			addNewMessage(new Message(newMessage, true));
 		}
 	}

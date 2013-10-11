@@ -114,7 +114,7 @@ public class ControlComManager implements Runnable{
 	
 	class BeaconParser {
 		public String userId;
-		public String MacAddress;
+		public String macAddr;
 
 		public BeaconParser(byte[] rcvBuf, int length, InetAddress senderAddr) {
 			int pointer = 1;
@@ -133,7 +133,7 @@ public class ControlComManager implements Runnable{
 					case BEACON_IE_TYPE_REALID:
 						ie_len = rcvBuf[++pointer];
 						if (ie_len + pointer > length) malformed = true;
-						this.MacAddress =
+						this.macAddr =
 								String.format("%x:%x:%x:%x:%x:%x", 
 											  rcvBuf[++pointer], rcvBuf[++pointer], rcvBuf[++pointer],
 											  rcvBuf[++pointer], rcvBuf[++pointer], rcvBuf[++pointer]);
@@ -189,7 +189,7 @@ public class ControlComManager implements Runnable{
     			case CONTROL_PKT_TYPE_BEACON:
     				BeaconParser bp = new BeaconParser(rcvBuf, rcvPkt.getLength(), senderAddr);
     				Log.i("ControlComReceiver", "Beacon rcvd from <"+
-    						  senderAddr+">, UserID("+bp.userId+"), MacAddr("+bp.MacAddress+")");
+    						  senderAddr+">, UserID("+bp.userId+"), MacAddr("+bp.macAddr+")");
     				break;
     				
     			default:
