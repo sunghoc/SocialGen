@@ -7,7 +7,8 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.TabHost;
 import edu.cmu.socialgen.ControlComManager;
-import edu.cmu.socialgen.DataComManager;
+import edu.cmu.socialgen.DataComReceiver;
+import edu.cmu.socialgen.DataComSender;
 import edu.cmu.socialgen.DummyTabContent;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.tab.ChatsFragment;
@@ -20,7 +21,8 @@ public class MainActivity extends FragmentActivity {
 
 	TabHost tHost;
 	public static ControlComManager CM;
-	public static DataComManager DM;
+	public static DataComReceiver DR;
+	public static DataComSender DS;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -28,8 +30,10 @@ public class MainActivity extends FragmentActivity {
         try {
         	CM = new ControlComManager(this.getWiFiMgr());
         	new Thread(CM).start();
-        	DM = new DataComManager(this.getWiFiMgr());
-        	new Thread(DM).start();
+        	DR = new DataComReceiver(this.getWiFiMgr());
+        	new Thread(DR).start();
+        	DS = new DataComSender(DR);
+        	new Thread(DS).start();
         } catch (Exception e) {
         	/* if getWiFiInfo() fails, stop the application! */
         	Log.i("Exception", "Exception in creating thread - "+e);

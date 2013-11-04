@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import edu.cmu.socialgen.DataComSender;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.UserMsg;
 import edu.cmu.socialgen.adapter.ChatAdapter;
@@ -53,12 +54,10 @@ public class ChatActivity extends ListActivity {
 			etMessage.setText("");
 			/* build message */
 			UserMsg msg = new UserMsg(null, "ElecPig", newMessage);
-			//android.os.Message osMsg = android.os.Message.obtain();
-			//osMsg.obj = msg;
-			//MainActivity.DM.userMsgHandler.sendMessage(osMsg);
-			
+			android.os.Message osMsg = android.os.Message.obtain();
+			osMsg.obj = msg;
 			/* send message */
-			MainActivity.DM.enterText(msg);
+			DataComSender.userMsgHandler.sendMessage(osMsg);
 			
 			/* show in the text box */
 			addNewMessage(new Message(newMessage, true));

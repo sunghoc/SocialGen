@@ -36,6 +36,7 @@ public class ControlComManager implements Runnable{
 	public InetAddress BCAST_ADDR;
 	
 	public InetAddress localInetIpAddr;
+	public byte[] localMacAddr = new byte[6];
 	private DatagramSocket controlSocket;
 	private WifiManager wifiMgr;
 	
@@ -44,7 +45,11 @@ public class ControlComManager implements Runnable{
 		int intIpAddr = wifiMgr.getConnectionInfo().getIpAddress();
 		byte[] byteIpAddr = 
 				ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(intIpAddr).array();
-		String MacStr = wifiMgr.getConnectionInfo().getMacAddress();
+		String macStr = wifiMgr.getConnectionInfo().getMacAddress();
+		StringTokenizer macStrTok = new StringTokenizer(macStr, ":");
+		for (int i = 0; i < 6; i++) {
+			this.localMacAddr[i] = Integer.valueOf(macStrTok.nextToken(), 16).byteValue();
+		}
 		
 		/* socket setting */
 		try {
@@ -64,19 +69,15 @@ public class ControlComManager implements Runnable{
 		Timer beacon_timer = new Timer(BEACON_TMR_TASK_NAME);
 		class BeaconTimerTask extends TimerTask{
 			public DatagramSocket inheritedCS;
-			public byte[] localMacAddr = new byte[6];
+			public byte localMac[] = new byte[6];
 			
-			public BeaconTimerTask(DatagramSocket cs, String macStr){
+			public BeaconTimerTask(DatagramSocket cs, byte[] macBytes){
 				inheritedCS = cs;
-
-				StringTokenizer macStrTok = new StringTokenizer(macStr, ":");
-				for (int i = 0; i < 6; i++) {
-					this.localMacAddr[i] = Integer.valueOf(macStrTok.nextToken(), 16).byteValue();
-				}
+				this.localMac = macBytes;
 			}
 			
 			public void run(){
-				DatagramPacket sndPkt = createBeacon("ElecPig", this.localMacAddr);
+				DatagramPacket sndPkt = createBeacon("ElecPig", this.localMac);
 				try {
 					this.inheritedCS.send(sndPkt);
 				} catch (Exception e) {
@@ -85,7 +86,7 @@ public class ControlComManager implements Runnable{
 	    		Log.d("BeaconModule", "Beacon sent!");
 			}
 		}
-		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, MacStr),
+		beacon_timer.schedule(new BeaconTimerTask(this.controlSocket, localMacAddr),
 							  BEACON_PERIOD, BEACON_PERIOD);
 	}
 	
@@ -102,7 +103,7 @@ public class ControlComManager implements Runnable{
 		/* add real id TLV */
 		msgStrBuf.append(String.format("%c%c000000", BEACON_IE_TYPE_REALID, BEACON_IE_REALID_MAXLEN));
 		byte[] msgByteArray = msgStrBuf.toString().getBytes();
-		int msgLen = msgStrBuf.length();
+		int msgLen = msgByteArray.length;
 		for (int i = 0; i < 6; i++) {
 			msgByteArray[msgLen - 6 + i] = realId[i];
 		}
