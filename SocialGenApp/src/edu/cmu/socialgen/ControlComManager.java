@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -13,7 +15,6 @@ import java.util.TimerTask;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
-//import android.os.SystemClock;
 
 
 
@@ -35,10 +36,15 @@ public class ControlComManager implements Runnable{
 	public InetAddress WCARD_ADDR;
 	public InetAddress BCAST_ADDR;
 	
+	public static final int MAX_NEIGHBOR_NUM = 100;
+	
 	public InetAddress localInetIpAddr;
 	public byte[] localMacAddr = new byte[6];
 	private DatagramSocket controlSocket;
 	private WifiManager wifiMgr;
+	
+	public static Map<String, String> neighHashMap;
+	
 	
 	public ControlComManager(WifiManager wifiMgr) {
 		this.wifiMgr = wifiMgr;
@@ -64,6 +70,9 @@ public class ControlComManager implements Runnable{
 		} catch (Exception e) {
 			Log.i("ControlComSetting", "Exception"+e);
 		}
+		
+		/* neighbor list initialization */
+		neighHashMap = new HashMap<String, String>(MAX_NEIGHBOR_NUM);
 		
 		/* beacon task setting */
 		Timer beacon_timer = new Timer(BEACON_TMR_TASK_NAME);
@@ -191,6 +200,9 @@ public class ControlComManager implements Runnable{
     				BeaconParser bp = new BeaconParser(rcvBuf, rcvPkt.getLength(), senderAddr);
     				Log.i("ControlComReceiver", "Beacon rcvd from <"+
     						  senderAddr+">, UserID("+bp.userId+"), MacAddr("+bp.macAddr+")");
+    				/* add to neighbor list */
+    				neighHashMap.put(bp.macAddr, bp.userId);
+    				Log.d("ControlComReceiver", "Neighbor list - "+neighHashMap.toString());
     				break;
     				
     			default:

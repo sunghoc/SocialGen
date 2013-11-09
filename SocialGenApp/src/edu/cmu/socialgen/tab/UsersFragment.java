@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import edu.cmu.socialgen.ControlComManager;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.activity.UserActivity;
 import edu.cmu.socialgen.adapter.UsersAdapter;
@@ -25,16 +26,11 @@ public class UsersFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
     	ArrayList<User> users = new ArrayList<User>();
-    	users.add(new User("SampleUser#1", R.drawable.android));
-    	users.add(new User("SampleUser#2", R.drawable.android));
-    	users.add(new User("SampleUser#3", R.drawable.android));
-    	users.add(new User("SampleUser#4", R.drawable.android));
-    	users.add(new User("SampleUser#5", R.drawable.android));
-    	users.add(new User("SampleUser#6", R.drawable.android));
-    	users.add(new User("SampleUser#7", R.drawable.android));
-    	users.add(new User("SampleUser#8", R.drawable.android));
-    	users.add(new User("SampleUser#9", R.drawable.android));
-    	users.add(new User("SampleUser#10", R.drawable.android));
+    	Object[] userIdArray = ControlComManager.neighHashMap.values().toArray();
+    	int neighNum = userIdArray.length;
+    	for (int i=0; i<neighNum; i++) {
+    		users.add(new User("("+(i+1)+") "+(String)(userIdArray[i]), R.drawable.android));
+    	}
     	setListAdapter(new UsersAdapter(getActivity(), R.layout.users_row, users));
     }
     
