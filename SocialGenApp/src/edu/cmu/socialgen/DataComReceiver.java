@@ -12,6 +12,9 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import edu.cmu.socialgen.activity.ChatActivity;
+import edu.cmu.socialgen.model.Message;
 
 
 
@@ -35,6 +38,8 @@ public class DataComReceiver implements Runnable{
 	public DatagramSocket dataSocket;
 	public WifiManager wifiMgr;
 	public Handler userMsgHandler;
+	
+	public static ChatActivity currentChatActivity = null;
 	
 	
 	public DataComReceiver(WifiManager wifiMgr) {
@@ -114,6 +119,27 @@ public class DataComReceiver implements Runnable{
 	    				}
 	    				byte msg_len = rcvBuf[pos++];
 	    				String msg = new String(rcvBuf, pos, msg_len);
+	    				
+	    				class ResultDeliverOnUiThread implements Runnable {
+	    					ChatActivity currentChatActivity;
+	    					String msg;
+	    					
+	    					public ResultDeliverOnUiThread(ChatActivity chatActivity, String msg) {
+	    						currentChatActivity = chatActivity;
+	    						this.msg = msg;
+	    					}
+	    					
+	    					public void run() {
+	    						currentChatActivity.addNewMessage(new Message(msg, true));
+	    					}
+	    				}
+	    				/* show in the text box */
+	    				if (currentChatActivity != null) {
+	    					currentChatActivity.runOnUiThread(
+	    							new ResultDeliverOnUiThread(currentChatActivity, msg));
+	    				}
+	    				
+	    				/* debug */
 	    				Log.i("DataComReceiver", "Text message rcvd from <"+
 	    					  senderAddr+">, UserID("+user_id+"), RealId("+
 	    					  String.format("%x:%x:%x:%x:%x:%x", real_id[0], real_id[1], real_id[2],

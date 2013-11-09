@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import edu.cmu.socialgen.DataComReceiver;
 import edu.cmu.socialgen.DataComSender;
 import edu.cmu.socialgen.R;
 import edu.cmu.socialgen.UserMsg;
@@ -33,6 +34,7 @@ public class ChatActivity extends ListActivity {
 		messages = this.getMessages();
 		adapter = new ChatAdapter(this, messages);
 		setListAdapter(adapter);
+		DataComReceiver.currentChatActivity = this;
 	}
 
 	@Override
@@ -44,6 +46,7 @@ public class ChatActivity extends ListActivity {
 	
 	@Override
 	public void onBackPressed() {
+		DataComReceiver.currentChatActivity = null;
 		super.onBackPressed();
 		overridePendingTransition(R.anim.animation_exit, R.anim.left_to_right);
 	}
@@ -64,7 +67,7 @@ public class ChatActivity extends ListActivity {
 		}
 	}
 	
-	private void addNewMessage(Message msg) {
+	public void addNewMessage(Message msg) {
 		messages.add(msg);
 		adapter.notifyDataSetChanged();
 		getListView().setSelection(messages.size() - 1);
