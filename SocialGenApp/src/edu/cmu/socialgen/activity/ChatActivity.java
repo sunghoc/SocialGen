@@ -56,7 +56,7 @@ public class ChatActivity extends ListActivity {
 		if (newMessage.length() > 0) {
 			etMessage.setText("");
 			/* build message */
-			UserMsg msg = new UserMsg(null, "ElecPig", newMessage);
+			UserMsg msg = new UserMsg(null, MainActivity.userId, newMessage);
 			android.os.Message osMsg = android.os.Message.obtain();
 			osMsg.obj = msg;
 			/* send message */

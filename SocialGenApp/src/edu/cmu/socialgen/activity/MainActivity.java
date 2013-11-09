@@ -1,5 +1,7 @@
 package edu.cmu.socialgen.activity;
 
+import java.util.Random;
+
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -23,6 +25,8 @@ public class MainActivity extends FragmentActivity {
 	public static ControlComManager CM;
 	public static DataComReceiver DR;
 	public static DataComSender DS;
+	public static String userId;
+	
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,6 +42,8 @@ public class MainActivity extends FragmentActivity {
         	/* if getWiFiInfo() fails, stop the application! */
         	Log.i("Exception", "Exception in creating thread - "+e);
         }
+        Random r = new Random();
+        userId = "ElecPig" + r.nextInt(10000-0) + 0;
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

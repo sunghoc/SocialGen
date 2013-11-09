@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import edu.cmu.socialgen.activity.MainActivity;
 
 public class DataComSender implements Runnable{
 
@@ -56,7 +57,7 @@ public class DataComSender implements Runnable{
     			StringBuffer msgStrBuf = new StringBuffer();
     			msgStrBuf.append(String.format("%c", DATA_PKT_TYPE_TEXT));
     			/* add user id */
-    			String userId = "ElecPig";
+    			String userId = MainActivity.userId;
     			byte userid_len = (byte)Math.min(userId.length(), USERID_MAXLEN);
     			msgStrBuf.append(String.format("%c", userid_len));
     			msgStrBuf.append(userId.substring(0, userid_len));

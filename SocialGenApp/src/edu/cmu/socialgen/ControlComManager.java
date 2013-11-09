@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
+import edu.cmu.socialgen.activity.MainActivity;
 
 
 
@@ -86,7 +87,7 @@ public class ControlComManager implements Runnable{
 			}
 			
 			public void run(){
-				DatagramPacket sndPkt = createBeacon("ElecPig", this.localMac);
+				DatagramPacket sndPkt = createBeacon(MainActivity.userId, this.localMac);
 				try {
 					this.inheritedCS.send(sndPkt);
 				} catch (Exception e) {
